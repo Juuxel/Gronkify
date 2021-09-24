@@ -26,3 +26,9 @@ gradlePlugin {
         implementationClass = "juuxel.gronkify.Gronkify"
     }
 }
+
+tasks {
+    jar {
+        from("COPYING.md")
+    }
+}
