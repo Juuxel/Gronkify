@@ -27,26 +27,39 @@ package juuxel.gronkify
 
 import org.gradle.api.services.{BuildService, BuildServiceParameters}
 
-import javax.sound.sampled.{AudioSystem, FloatControl, LineEvent}
+import javax.sound.sampled.{AudioSystem, Clip, FloatControl, LineEvent}
 
 abstract class MusicService extends BuildService[BuildServiceParameters.None] with AutoCloseable {
   private var stopped = false
-  private val url = classOf[MusicService].getResource("/gronkify/bgm.wav")
-  private val stream = AudioSystem.getAudioInputStream(url)
-  private val clip = AudioSystem.getClip
-  clip.open(stream)
-  clip.addLineListener(event => {
-    if (event.getType == LineEvent.Type.STOP) {
-      clip.setFramePosition(0)
-      if (!stopped) clip.start()
-    }
-  })
-  clip.getControl(FloatControl.Type.MASTER_GAIN).asInstanceOf[FloatControl].setValue(-15)
-  clip.start()
+  private val clip = start()
+
+  private def start(): Option[Clip] = try {
+    val url = classOf[MusicService].getResource("/gronkify/bgm.wav")
+    val stream = AudioSystem.getAudioInputStream(url)
+    val clip = AudioSystem.getClip
+    clip.open(stream)
+    clip.addLineListener(event => {
+      if (event.getType == LineEvent.Type.STOP) {
+        clip.setFramePosition(0)
+        if (!stopped) clip.start()
+      }
+    })
+    clip.getControl(FloatControl.Type.MASTER_GAIN).asInstanceOf[FloatControl].setValue(-15)
+    clip.start()
+    Some(clip)
+  } catch {
+    case _: Exception => None
+  }
+
+  def isPlaying: Boolean = clip.isDefined
 
   override def close(): Unit = {
     stopped = true
-    clip.stop()
-    clip.close()
+    clip match {
+      case Some(value) =>
+        value.stop()
+        value.close()
+      case None =>
+    }
   }
 }

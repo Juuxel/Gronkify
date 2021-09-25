@@ -30,9 +30,12 @@ import org.gradle.api.{Plugin, Project}
 
 class Gronkify extends Plugin[Project] {
   override def apply(target: Project): Unit = {
-    val service = target.getGradle.getSharedServices
+    val provider = target.getGradle.getSharedServices
       .registerIfAbsent[MusicService, BuildServiceParameters.None]("gronkify", classOf[MusicService], _ => {})
-    target.getLogger.lifecycle(":playing \"Le Grand Chase\" by Kevin MacLeod")
-    service.get() // let's run it!
+    val service = provider.get() // let's run it!
+
+    if (service.isPlaying) {
+      target.getLogger.lifecycle(":playing \"Le Grand Chase\" by Kevin MacLeod")
+    }
   }
 }
