@@ -32,3 +32,18 @@ tasks {
         from("COPYING.md")
     }
 }
+
+val env = System.getenv()
+if ("MAVEN_URL" in env) {
+    publishing {
+        repositories {
+            maven {
+                url = uri(env.getValue("MAVEN_URL"))
+                credentials {
+                    username = env.getValue("MAVEN_USERNAME")
+                    password = env.getValue("MAVEN_PASSWORD")
+                }
+            }
+        }
+    }
+}
