@@ -30,6 +30,17 @@ import org.gradle.api.{Plugin, Project}
 
 class Gronkify extends Plugin[Project] {
   override def apply(target: Project): Unit = {
+    if (shouldPlay(target)) play(target)
+  }
+
+  private def shouldPlay(project: Project): Boolean = {
+    val refresh = project.getGradle.getStartParameter.isRefreshDependencies || java.lang.Boolean.getBoolean("loom.refresh")
+    refresh || !Option(project.findProperty("gronkify.requireRefreshDependencies"))
+      .flatMap(_.toString.toBooleanOption)
+      .getOrElse(false)
+  }
+
+  private def play(target: Project): Unit = {
     val provider = target.getGradle.getSharedServices
       .registerIfAbsent[MusicService, BuildServiceParameters.None]("gronkify", classOf[MusicService], _ => {})
     val service = provider.get() // let's run it!
